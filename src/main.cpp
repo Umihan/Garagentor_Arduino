@@ -139,7 +139,7 @@ void Bedingungen()
    //*** BEREIT auf SCHLIESSEN weil die Zeit abgelaufen ist
    if(Zustand==ST_Bereit &&  (millis()- Startzeit >= SchliessIntervall))
    {
-     Zustand==ST_SCHLIESSEN;
+     Zustand=ST_SCHLIESSEN;
    }
 }
 
