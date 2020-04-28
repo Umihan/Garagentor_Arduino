@@ -14,17 +14,23 @@
 
 
 bool Su, So, Taster, Mauf, Mzu;
+//*** Serielle Kommunikation
+bool _SerOpen = false, _SerClose=false;;
+
+byte frame[4];
 
 int Zustand;
 
+
 unsigned long Startzeit=0;
-unsigned long SchliessIntervall=5000;   // Zeit, bis zum automatischen Schließen, zum Testen auf 5 Sekunden gesetzt
+unsigned long SchliessIntervall=10000;   // Zeit, bis zum automatischen Schließen, zum Testen auf 5 Sekunden gesetzt
 
 
 //*** Methoden Header
 void EingaengeLesen();
 void Bedingungen();
 void Aktionen();
+void SeriellLesen();
 
 void setup() {
   
@@ -59,6 +65,7 @@ void loop()
   //*** Eingänge einlesen ***/
   //*************************/
     EingaengeLesen();
+    SeriellLesen();
 
   //******************************************************************************************************/
   //*** Bedingungen und Übergänge kontrollieren, um zu wissen, welcher Zustand gerade aktiv sein muss ****/
@@ -78,38 +85,57 @@ void EingaengeLesen()
   Su=digitalRead(SensorUnten)==HIGH;
   Taster=digitalRead(TasterManuell)==HIGH;
 
-  //** Nur zum Debuggen
-  // while(Serial.available()>0)
-  // {
-  //   char k=Serial.read();
-  //   switch(k)
-  //   {
-  //     case 'o':
-  //       So=true;
-  //       Su=false;
-  //       Taster=false;
-  //       break;
-  //      case 'u':
-  //       Su=true;
-  //       So=false;
-  //       Taster=false;
-  //       break;
-  //       case 't':
-  //       Taster=true;
-  //       break;
-  //   }
-  //   Serial.println(k);
-  // }
+  
   delay(500);
 }
 
+void SeriellLesen()
+{
+  if(Serial.available()>0)
+  {
+    frame[0]=Serial.read();
+    if(frame[0]=='@')
+    {
+      delay(5);
+      int counter=1;
+      while(Serial.available()>0 && counter<4)
+      {
+        frame[counter++]=Serial.read();
+      }
+      if(frame[3]==';')
+      {
+        //** Fehlerfreies Frame erhalten ***//
+        switch(frame[1])
+        {
+          case 'o':
+            _SerOpen=true;
+          break;
+          case 'c':
+            _SerClose=true;
+          break;
+        }
+      }
+      else
+      {
+        // ** Fehlerhaftes Frame erhalten
+      }
+      
+    }
+    else
+    {
+      //*** Fehlerhaftes Frame
+    }
+    
+  }
+}
 void Bedingungen()
 {
 
   //*** Von ZU auf OEFFNEN
-  if(Zustand==ST_ZU && Taster==true)
+  if(Zustand==ST_ZU && (Taster==true || _SerOpen))
   {
     Zustand=ST_OEFFNEN;
+    _SerOpen=false;
   }
 
   //*** Von OEFFNEN auf OFFEN
@@ -119,9 +145,10 @@ void Bedingungen()
     Startzeit=millis();                     // Zum erkennen, ob das Tor länger als Intervall Sekunden offen ist.
   }
    //*** von OFFEN auf SCHLIESSEN
-   if(Zustand==ST_OFFEN && (Taster==true || (millis()- Startzeit >= SchliessIntervall)))
+   if(Zustand==ST_OFFEN && (Taster==true || (millis()- Startzeit >= SchliessIntervall) || _SerClose))
    {
      Zustand=ST_SCHLIESSEN;
+     _SerClose=false;
    }
 
    //*** Von SCHLIESSEN auf ZU
@@ -131,15 +158,17 @@ void Bedingungen()
    }
 
    //*** von BEREIT auf OEFFNEN
-   if(Zustand==ST_Bereit && Taster==true)
+   if(Zustand==ST_Bereit && (Taster==true || _SerOpen))
    {
      Zustand=ST_OEFFNEN;
+     _SerOpen=false;
    }
 
    //*** BEREIT auf SCHLIESSEN weil die Zeit abgelaufen ist
-   if(Zustand==ST_Bereit &&  (millis()- Startzeit >= SchliessIntervall))
+   if(Zustand==ST_Bereit && ((millis()- Startzeit >= SchliessIntervall) || _SerClose))
    {
      Zustand=ST_SCHLIESSEN;
+     _SerClose=false;
    }
 }
 
