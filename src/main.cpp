@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Entprellung.h>
+#include <GLOBALS.h>
 #include <SeriellLesen.h>
 
 //*** I/O des Arduino
@@ -17,15 +17,17 @@
 
 
 bool Su, So, Taster, Mauf, Mzu;
-//*** Serielle Kommunikation
-bool _SerOpen = false, _SerClose=false;;
 
-byte frame[4];
+
+//byte frame[4];
 
 int Zustand;
 int ZeitFaktor=1;
 
 unsigned long Startzeit=0;
+byte frame[4];
+//*** Serielle Kommunikation
+bool _SerOpen = false, _SerClose=false;
 unsigned long SchliessIntervall=10000;   // Zeit, bis zum automatischen Schließen, zum Testen auf 5 Sekunden gesetzt
 
 
