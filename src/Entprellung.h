@@ -2,6 +2,7 @@
 #define ENTPRELLUNG_H
 
 #include <Arduino.h>
+#include <SeriellLesen.h>
 
 //**** Klasse, um einen GPIO-Pin, als INPUT definiert, zu entprellen
 class Entprellung

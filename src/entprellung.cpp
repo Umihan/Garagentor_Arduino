@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "Entprellung.h"
+#include <Entprellung.h>
 
 //** Constructor
         Entprellung::Entprellung(int pin)

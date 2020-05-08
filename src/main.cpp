@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include <Entprellung.h>
+#include <SeriellLesen.h>
+
 //*** I/O des Arduino
 #define SensorOben    3               // Sensor oben, Schließer -> Tor geöffnet
 #define SensorUnten   2               // Sensor unten, Schließer -> Tor geschlossen
@@ -20,7 +23,7 @@ bool _SerOpen = false, _SerClose=false;;
 byte frame[4];
 
 int Zustand;
-
+int ZeitFaktor=1;
 
 unsigned long Startzeit=0;
 unsigned long SchliessIntervall=10000;   // Zeit, bis zum automatischen Schließen, zum Testen auf 5 Sekunden gesetzt
@@ -86,48 +89,54 @@ void EingaengeLesen()
   Taster=digitalRead(TasterManuell)==HIGH;
 
   
-  delay(500);
+  delay(100);
 }
 
-void SeriellLesen()
-{
-  if(Serial.available()>0)
-  {
-    frame[0]=Serial.read();
-    if(frame[0]=='@')
-    {
-      delay(5);
-      int counter=1;
-      while(Serial.available()>0 && counter<4)
-      {
-        frame[counter++]=Serial.read();
-      }
-      if(frame[3]==';')
-      {
-        //** Fehlerfreies Frame erhalten ***//
-        switch(frame[1])
-        {
-          case 'o':
-            _SerOpen=true;
-          break;
-          case 'c':
-            _SerClose=true;
-          break;
-        }
-      }
-      else
-      {
-        // ** Fehlerhaftes Frame erhalten
-      }
+// void SeriellLesen()
+// {
+//   if(Serial.available()>0)
+//   {
+//     frame[0]=Serial.read();
+//     if(frame[0]=='@')
+//     {
+//       delay(5);
+//       int counter=1;
+//       while(Serial.available()>0 && counter<4)
+//       {
+//         frame[counter++]=Serial.read();
+//       }
+//       if(frame[3]==';')
+//       {
+//         //** Fehlerfreies Frame erhalten ***//
+//         switch(frame[1])
+//         {
+//           case 'o':
+//             _SerOpen=true;
+//           break;
+//           case 'c':
+//             _SerClose=true;
+//             break;
+//           case 't':
+//             //*** Neues WarteIntervall festgelegt
+//             SchliessIntervall=frame[2];
+//             Serial.print("Neue Wartezeit :");
+//             Serial.println(SchliessIntervall);
+//             break;
+//         }
+//       }
+//       else
+//       {
+//         // ** Fehlerhaftes Frame erhalten
+//       }
       
-    }
-    else
-    {
-      //*** Fehlerhaftes Frame
-    }
+//     }
+//     else
+//     {
+//       //*** Fehlerhaftes Frame
+//     }
     
-  }
-}
+//   }
+// }
 void Bedingungen()
 {
 
